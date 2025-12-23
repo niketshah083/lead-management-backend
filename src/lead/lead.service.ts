@@ -78,12 +78,15 @@ export class LeadService {
       });
     }
 
+    // Use the initial status name from database, or fallback to 'new'
+    const statusName = dto.status || initialStatus?.name || 'new';
+
     const lead = this.leadRepository.create({
       phoneNumber: dto.phoneNumber,
       name: dto.name,
       categoryId: dto.categoryId || undefined,
       businessTypeId: dto.businessTypeId || undefined,
-      status: dto.status || LeadStatus.NEW,
+      status: statusName as LeadStatus,
       statusMasterId: initialStatus?.id,
     });
 
@@ -137,6 +140,15 @@ export class LeadService {
 
     if (filters.dateTo) {
       query.andWhere('lead.createdAt <= :dateTo', { dateTo: filters.dateTo });
+    }
+
+    // Search filter - search across name, phone, email, businessName
+    if (filters.search) {
+      const searchTerm = `%${filters.search.toLowerCase()}%`;
+      query.andWhere(
+        '(LOWER(lead.name) LIKE :search OR LOWER(lead.phoneNumber) LIKE :search OR LOWER(lead.email) LIKE :search OR LOWER(lead.businessName) LIKE :search)',
+        { search: searchTerm },
+      );
     }
 
     // Pagination
@@ -275,7 +287,7 @@ export class LeadService {
       changes.push(
         `Status changed from "${previousStatus}" to "${dto.status}"`,
       );
-      lead.status = dto.status;
+      lead.status = dto.status as LeadStatus;
     }
 
     // Track name change
@@ -317,27 +329,61 @@ export class LeadService {
     const { LeadStatusMaster } = await import('../entities');
     const statusMasterRepo =
       this.leadRepository.manager.getRepository(LeadStatusMaster);
-    const newStatusMaster = await statusMasterRepo.findOne({
-      where: { name: dto.status, isActive: true },
-    });
 
-    lead.status = dto.status;
-    if (newStatusMaster) {
-      lead.statusMasterId = newStatusMaster.id;
+    let newStatusMaster: any = null;
+    let newStatusName: string;
+
+    // Support both statusMasterId and status name
+    if (dto.statusMasterId) {
+      // Find by ID
+      newStatusMaster = await statusMasterRepo.findOne({
+        where: { id: dto.statusMasterId, isActive: true },
+      });
+      if (!newStatusMaster) {
+        throw new NotFoundException('Status not found or inactive');
+      }
+      newStatusName = newStatusMaster.name;
+    } else if (dto.status) {
+      // Find by name (case-insensitive)
+      newStatusMaster = await statusMasterRepo.findOne({
+        where: { name: dto.status, isActive: true },
+      });
+      // If not found by exact name, try to find by trimmed name
+      if (!newStatusMaster) {
+        const allStatuses = await statusMasterRepo.find({
+          where: { isActive: true },
+        });
+        const statusToFind = dto.status;
+        newStatusMaster = allStatuses.find(
+          (s) =>
+            s.name.trim().toLowerCase() === statusToFind.trim().toLowerCase(),
+        );
+      }
+      if (!newStatusMaster) {
+        throw new NotFoundException(
+          `Status "${dto.status}" not found or inactive`,
+        );
+      }
+      newStatusName = newStatusMaster.name;
+    } else {
+      throw new NotFoundException('Status or statusMasterId is required');
     }
+
+    lead.status = newStatusName as LeadStatus;
+    lead.statusMasterId = newStatusMaster.id;
     const savedLead = await this.leadRepository.save(lead);
 
     // Create history record
     await this.createHistoryRecord(
       lead,
       previousStatus,
-      dto.status,
+      newStatusName as LeadStatus,
       currentUser.id,
       dto.notes,
     );
 
     this.logger.log(
-      `Lead ${id} status changed from ${previousStatus} to ${dto.status}`,
+      `Lead ${id} status changed from ${previousStatus} to ${newStatusName}`,
     );
 
     return savedLead;
@@ -420,15 +466,15 @@ export class LeadService {
 
   private async createHistoryRecord(
     lead: Lead,
-    previousStatus: LeadStatus,
-    newStatus: LeadStatus,
+    previousStatus: string,
+    newStatus: string,
     changedById: string,
     notes?: string,
   ): Promise<LeadHistory> {
     const history = this.leadHistoryRepository.create({
       leadId: lead.id,
-      previousStatus,
-      newStatus,
+      previousStatus: previousStatus as LeadStatus,
+      newStatus: newStatus as LeadStatus,
       changedById,
       notes,
     });

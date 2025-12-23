@@ -11,12 +11,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReassignLeadDto = exports.UpdateStatusDto = exports.UpdateLeadDto = void 0;
 const class_validator_1 = require("class-validator");
-const enums_1 = require("../../common/enums");
 class UpdateLeadDto {
     name;
     categoryId;
     businessTypeId;
     status;
+    statusMasterId;
     isQualified;
 }
 exports.UpdateLeadDto = UpdateLeadDto;
@@ -37,9 +37,14 @@ __decorate([
 ], UpdateLeadDto.prototype, "businessTypeId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsEnum)(enums_1.LeadStatus),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateLeadDto.prototype, "status", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], UpdateLeadDto.prototype, "statusMasterId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsBoolean)(),
@@ -47,13 +52,20 @@ __decorate([
 ], UpdateLeadDto.prototype, "isQualified", void 0);
 class UpdateStatusDto {
     status;
+    statusMasterId;
     notes;
 }
 exports.UpdateStatusDto = UpdateStatusDto;
 __decorate([
-    (0, class_validator_1.IsEnum)(enums_1.LeadStatus),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateStatusDto.prototype, "status", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], UpdateStatusDto.prototype, "statusMasterId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

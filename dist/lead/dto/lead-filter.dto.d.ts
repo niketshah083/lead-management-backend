@@ -1,9 +1,9 @@
-import { LeadStatus } from '../../common/enums';
 export declare class LeadFilterDto {
-    status?: LeadStatus[];
+    status?: string[];
     categoryId?: string;
     assignedToId?: string;
     unassignedOnly?: boolean;
+    search?: string;
     dateFrom?: string;
     dateTo?: string;
     page?: number;

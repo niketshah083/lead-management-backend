@@ -1,39 +1,5 @@
-export declare class CreateLeadStatusDto {
-    name: string;
-    description?: string;
-    color?: string;
-    bgColor?: string;
-    icon?: string;
-    order?: number;
-    isInitial?: boolean;
-    isFinal?: boolean;
-    statusType?: string;
-}
-export declare class UpdateLeadStatusDto {
-    name?: string;
-    description?: string;
-    color?: string;
-    bgColor?: string;
-    icon?: string;
-    order?: number;
-    isActive?: boolean;
-    isInitial?: boolean;
-    isFinal?: boolean;
-    statusType?: string;
-}
-export declare class CreateStatusTransitionDto {
-    fromStatusId: string;
-    toStatusId: string;
-    requiresComment?: boolean;
-    allowedRoles?: string[];
-}
-export declare class UpdateStatusTransitionDto {
-    isActive?: boolean;
-    requiresComment?: boolean;
-    allowedRoles?: string[];
-}
-export declare class BulkCreateTransitionsDto {
-    fromStatusId: string;
-    toStatusIds: string[];
-    requiresComment?: boolean;
-}
+export * from './create-lead-status.dto';
+export * from './update-lead-status.dto';
+export * from './create-status-transition.dto';
+export * from './update-status-transition.dto';
+export * from './bulk-create-transitions.dto';

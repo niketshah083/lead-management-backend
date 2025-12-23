@@ -1,4 +1,3 @@
-import { LeadStatus } from '../enums';
 import { CategoryDto } from './category.dto';
 import { UserDto } from './user.dto';
 export declare class LeadDto {
@@ -7,7 +6,8 @@ export declare class LeadDto {
     name?: string;
     categoryId?: string | null;
     category?: CategoryDto;
-    status: LeadStatus;
+    status: string;
+    statusMasterId?: string;
     assignedToId?: string;
     assignedTo?: UserDto;
     claimedAt?: Date;
@@ -16,13 +16,14 @@ export declare class LeadDto {
     updatedAt: Date;
 }
 export declare class LeadFilterDto {
-    status?: LeadStatus[];
+    status?: string[];
     categoryId?: string;
     assignedToId?: string;
     dateFrom?: Date;
     dateTo?: Date;
 }
 export declare class UpdateLeadStatusDto {
-    status: LeadStatus;
+    status?: string;
+    statusMasterId?: string;
     notes?: string;
 }

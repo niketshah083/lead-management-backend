@@ -29,7 +29,7 @@ export class MessageService {
   async getConversation(
     leadId: string,
     pagination: PaginationDto,
-  ): Promise<{ data: Message[]; total: number; page: number; limit: number }> {
+  ): Promise<{ data: any[]; total: number; page: number; limit: number }> {
     const lead = await this.leadRepository.findOne({
       where: { id: leadId },
     });
@@ -50,25 +50,43 @@ export class MessageService {
       take: limit,
     });
 
-    // Regenerate signed URLs for messages with media
+    // Regenerate signed URLs for messages with media and transform sentBy to sender
     const data = await Promise.all(
       messages.map(async (msg) => {
+        let mediaUrl = msg.mediaUrl;
         if (msg.mediaUrl && this.isS3Key(msg.mediaUrl)) {
           try {
-            const signedUrl = await this.s3Service.getSignedUrl(msg.mediaUrl);
-            return { ...msg, mediaUrl: signedUrl };
+            mediaUrl = await this.s3Service.getSignedUrl(msg.mediaUrl);
           } catch (error) {
             this.logger.warn(
               `Failed to generate signed URL for message ${msg.id}`,
             );
-            return msg;
           }
         }
-        return msg;
+
+        // Transform sentBy to sender for frontend compatibility
+        return {
+          id: msg.id,
+          leadId: msg.leadId,
+          direction: msg.direction,
+          content: msg.content,
+          mediaUrl,
+          mediaType: msg.mediaType,
+          status: msg.status,
+          isAutoReply: msg.isAutoReply,
+          createdAt: msg.createdAt,
+          senderId: msg.sentById,
+          sender: msg.sentBy
+            ? {
+                id: msg.sentBy.id,
+                name: msg.sentBy.name,
+              }
+            : null,
+        };
       }),
     );
 
-    return { data: data as Message[], total, page, limit };
+    return { data, total, page, limit };
   }
 
   /**
@@ -83,7 +101,7 @@ export class MessageService {
     leadId: string,
     dto: SendMessageDto,
     senderId: string,
-  ): Promise<Message> {
+  ): Promise<any> {
     const lead = await this.leadRepository.findOne({
       where: { id: leadId },
     });
@@ -124,7 +142,31 @@ export class MessageService {
       `Message ${savedMessage.id} sent to lead ${leadId}, status: ${savedMessage.status}`,
     );
 
-    return savedMessage;
+    // Fetch the message with sender info for response
+    const messageWithSender = await this.messageRepository.findOne({
+      where: { id: savedMessage.id },
+      relations: ['sentBy'],
+    });
+
+    // Transform to frontend format
+    return {
+      id: savedMessage.id,
+      leadId: savedMessage.leadId,
+      direction: savedMessage.direction,
+      content: savedMessage.content,
+      mediaUrl: savedMessage.mediaUrl,
+      mediaType: savedMessage.mediaType,
+      status: savedMessage.status,
+      isAutoReply: savedMessage.isAutoReply,
+      createdAt: savedMessage.createdAt,
+      senderId: savedMessage.sentById,
+      sender: messageWithSender?.sentBy
+        ? {
+            id: messageWithSender.sentBy.id,
+            name: messageWithSender.sentBy.name,
+          }
+        : null,
+    };
   }
 
   private async sendWithRetry(

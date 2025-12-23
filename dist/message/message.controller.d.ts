@@ -9,12 +9,12 @@ export declare class MessageController {
     private readonly chatGateway;
     constructor(messageService: MessageService, s3Service: S3Service, chatGateway: ChatGateway);
     getConversation(leadId: string, pagination: PaginationDto): Promise<{
-        data: import("../entities").Message[];
+        data: any[];
         total: number;
         page: number;
         limit: number;
     }>;
-    send(leadId: string, dto: SendMessageDto, req: any): Promise<import("../entities").Message>;
+    send(leadId: string, dto: SendMessageDto, req: any): Promise<any>;
     findOne(id: string): Promise<import("../entities").Message | null>;
     testNotification(leadId: string): Promise<{
         message: string;

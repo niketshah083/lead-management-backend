@@ -52,12 +52,13 @@ let LeadService = LeadService_1 = class LeadService {
                 where: { name: 'New', isActive: true },
             });
         }
+        const statusName = dto.status || initialStatus?.name || 'new';
         const lead = this.leadRepository.create({
             phoneNumber: dto.phoneNumber,
             name: dto.name,
             categoryId: dto.categoryId || undefined,
             businessTypeId: dto.businessTypeId || undefined,
-            status: dto.status || enums_1.LeadStatus.NEW,
+            status: statusName,
             statusMasterId: initialStatus?.id,
         });
         const savedLead = await this.leadRepository.save(lead);
@@ -97,6 +98,10 @@ let LeadService = LeadService_1 = class LeadService {
         }
         if (filters.dateTo) {
             query.andWhere('lead.createdAt <= :dateTo', { dateTo: filters.dateTo });
+        }
+        if (filters.search) {
+            const searchTerm = `%${filters.search.toLowerCase()}%`;
+            query.andWhere('(LOWER(lead.name) LIKE :search OR LOWER(lead.phoneNumber) LIKE :search OR LOWER(lead.email) LIKE :search OR LOWER(lead.businessName) LIKE :search)', { search: searchTerm });
         }
         const page = filters.page || 1;
         const limit = filters.limit || 20;
@@ -206,16 +211,41 @@ let LeadService = LeadService_1 = class LeadService {
         const previousStatus = lead.status;
         const { LeadStatusMaster } = await Promise.resolve().then(() => require('../entities'));
         const statusMasterRepo = this.leadRepository.manager.getRepository(LeadStatusMaster);
-        const newStatusMaster = await statusMasterRepo.findOne({
-            where: { name: dto.status, isActive: true },
-        });
-        lead.status = dto.status;
-        if (newStatusMaster) {
-            lead.statusMasterId = newStatusMaster.id;
+        let newStatusMaster = null;
+        let newStatusName;
+        if (dto.statusMasterId) {
+            newStatusMaster = await statusMasterRepo.findOne({
+                where: { id: dto.statusMasterId, isActive: true },
+            });
+            if (!newStatusMaster) {
+                throw new common_1.NotFoundException('Status not found or inactive');
+            }
+            newStatusName = newStatusMaster.name;
         }
+        else if (dto.status) {
+            newStatusMaster = await statusMasterRepo.findOne({
+                where: { name: dto.status, isActive: true },
+            });
+            if (!newStatusMaster) {
+                const allStatuses = await statusMasterRepo.find({
+                    where: { isActive: true },
+                });
+                const statusToFind = dto.status;
+                newStatusMaster = allStatuses.find((s) => s.name.trim().toLowerCase() === statusToFind.trim().toLowerCase());
+            }
+            if (!newStatusMaster) {
+                throw new common_1.NotFoundException(`Status "${dto.status}" not found or inactive`);
+            }
+            newStatusName = newStatusMaster.name;
+        }
+        else {
+            throw new common_1.NotFoundException('Status or statusMasterId is required');
+        }
+        lead.status = newStatusName;
+        lead.statusMasterId = newStatusMaster.id;
         const savedLead = await this.leadRepository.save(lead);
-        await this.createHistoryRecord(lead, previousStatus, dto.status, currentUser.id, dto.notes);
-        this.logger.log(`Lead ${id} status changed from ${previousStatus} to ${dto.status}`);
+        await this.createHistoryRecord(lead, previousStatus, newStatusName, currentUser.id, dto.notes);
+        this.logger.log(`Lead ${id} status changed from ${previousStatus} to ${newStatusName}`);
         return savedLead;
     }
     async reassign(id, dto, currentUser) {
@@ -263,8 +293,8 @@ let LeadService = LeadService_1 = class LeadService {
     async createHistoryRecord(lead, previousStatus, newStatus, changedById, notes) {
         const history = this.leadHistoryRepository.create({
             leadId: lead.id,
-            previousStatus,
-            newStatus,
+            previousStatus: previousStatus,
+            newStatus: newStatus,
             changedById,
             notes,
         });

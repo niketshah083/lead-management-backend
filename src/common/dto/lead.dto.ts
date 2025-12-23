@@ -5,10 +5,8 @@ import {
   IsUUID,
   IsBoolean,
   IsDate,
-  IsEnum,
   IsArray,
 } from 'class-validator';
-import { LeadStatus } from '../enums';
 import { CategoryDto } from './category.dto';
 import { UserDto } from './user.dto';
 
@@ -37,8 +35,13 @@ export class LeadDto {
   category?: CategoryDto;
 
   @Expose()
-  @IsEnum(LeadStatus)
-  status: LeadStatus;
+  @IsString()
+  status: string; // Dynamic status name from database
+
+  @Expose()
+  @IsOptional()
+  @IsUUID()
+  statusMasterId?: string;
 
   @Expose()
   @IsOptional()
@@ -74,8 +77,8 @@ export class LeadDto {
 export class LeadFilterDto {
   @IsOptional()
   @IsArray()
-  @IsEnum(LeadStatus, { each: true })
-  status?: LeadStatus[];
+  @IsString({ each: true })
+  status?: string[]; // Dynamic status names
 
   @IsOptional()
   @IsUUID()
@@ -97,8 +100,13 @@ export class LeadFilterDto {
 }
 
 export class UpdateLeadStatusDto {
-  @IsEnum(LeadStatus)
-  status: LeadStatus;
+  @IsOptional()
+  @IsString()
+  status?: string; // Dynamic status name
+
+  @IsOptional()
+  @IsUUID()
+  statusMasterId?: string;
 
   @IsOptional()
   @IsString()

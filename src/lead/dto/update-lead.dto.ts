@@ -1,11 +1,4 @@
-import {
-  IsString,
-  IsOptional,
-  IsUUID,
-  IsEnum,
-  IsBoolean,
-} from 'class-validator';
-import { LeadStatus } from '../../common/enums';
+import { IsString, IsOptional, IsUUID, IsBoolean } from 'class-validator';
 
 export class UpdateLeadDto {
   @IsOptional()
@@ -21,8 +14,12 @@ export class UpdateLeadDto {
   businessTypeId?: string;
 
   @IsOptional()
-  @IsEnum(LeadStatus)
-  status?: LeadStatus;
+  @IsString()
+  status?: string;
+
+  @IsOptional()
+  @IsUUID()
+  statusMasterId?: string;
 
   @IsOptional()
   @IsBoolean()
@@ -30,8 +27,13 @@ export class UpdateLeadDto {
 }
 
 export class UpdateStatusDto {
-  @IsEnum(LeadStatus)
-  status: LeadStatus;
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  @IsOptional()
+  @IsUUID()
+  statusMasterId?: string;
 
   @IsOptional()
   @IsString()

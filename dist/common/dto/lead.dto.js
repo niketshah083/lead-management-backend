@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateLeadStatusDto = exports.LeadFilterDto = exports.LeadDto = void 0;
 const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
-const enums_1 = require("../enums");
 const category_dto_1 = require("./category.dto");
 const user_dto_1 = require("./user.dto");
 class LeadDto {
@@ -22,6 +21,7 @@ class LeadDto {
     categoryId;
     category;
     status;
+    statusMasterId;
     assignedToId;
     assignedTo;
     claimedAt;
@@ -60,9 +60,15 @@ __decorate([
 ], LeadDto.prototype, "category", void 0);
 __decorate([
     (0, class_transformer_1.Expose)(),
-    (0, class_validator_1.IsEnum)(enums_1.LeadStatus),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], LeadDto.prototype, "status", void 0);
+__decorate([
+    (0, class_transformer_1.Expose)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], LeadDto.prototype, "statusMasterId", void 0);
 __decorate([
     (0, class_transformer_1.Expose)(),
     (0, class_validator_1.IsOptional)(),
@@ -110,7 +116,7 @@ exports.LeadFilterDto = LeadFilterDto;
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsEnum)(enums_1.LeadStatus, { each: true }),
+    (0, class_validator_1.IsString)({ each: true }),
     __metadata("design:type", Array)
 ], LeadFilterDto.prototype, "status", void 0);
 __decorate([
@@ -137,13 +143,20 @@ __decorate([
 ], LeadFilterDto.prototype, "dateTo", void 0);
 class UpdateLeadStatusDto {
     status;
+    statusMasterId;
     notes;
 }
 exports.UpdateLeadStatusDto = UpdateLeadStatusDto;
 __decorate([
-    (0, class_validator_1.IsEnum)(enums_1.LeadStatus),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateLeadStatusDto.prototype, "status", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], UpdateLeadStatusDto.prototype, "statusMasterId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

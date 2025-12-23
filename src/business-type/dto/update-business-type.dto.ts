@@ -1,6 +1,6 @@
 import { IsString, IsOptional, IsBoolean, IsNumber } from 'class-validator';
 
-export class UpdateLeadStatusDto {
+export class UpdateBusinessTypeDto {
   @IsOptional()
   @IsString()
   name?: string;
@@ -11,33 +11,17 @@ export class UpdateLeadStatusDto {
 
   @IsOptional()
   @IsString()
-  color?: string;
-
-  @IsOptional()
-  @IsString()
-  bgColor?: string;
-
-  @IsOptional()
-  @IsString()
   icon?: string;
 
   @IsOptional()
-  @IsNumber()
-  order?: number;
+  @IsString()
+  color?: string;
 
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 
   @IsOptional()
-  @IsBoolean()
-  isInitial?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  isFinal?: boolean;
-
-  @IsOptional()
-  @IsString()
-  statusType?: string;
+  @IsNumber()
+  order?: number;
 }

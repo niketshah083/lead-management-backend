@@ -1,15 +1,15 @@
 import {
   IsOptional,
   IsUUID,
-  IsEnum,
+  IsString,
   IsDateString,
   IsInt,
   Min,
   Max,
   IsBoolean,
+  IsArray,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
-import { LeadStatus } from '../../common/enums';
 
 export class LeadFilterDto {
   @IsOptional()
@@ -17,8 +17,9 @@ export class LeadFilterDto {
     if (!value) return undefined;
     return Array.isArray(value) ? value : [value];
   })
-  @IsEnum(LeadStatus, { each: true })
-  status?: LeadStatus[];
+  @IsArray()
+  @IsString({ each: true })
+  status?: string[]; // Dynamic status names from database
 
   @IsOptional()
   @IsUUID()
@@ -36,6 +37,10 @@ export class LeadFilterDto {
   })
   @IsBoolean()
   unassignedOnly?: boolean;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
 
   @IsOptional()
   @IsDateString()

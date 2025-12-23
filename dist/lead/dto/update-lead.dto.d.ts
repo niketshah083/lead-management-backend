@@ -1,13 +1,14 @@
-import { LeadStatus } from '../../common/enums';
 export declare class UpdateLeadDto {
     name?: string;
     categoryId?: string;
     businessTypeId?: string;
-    status?: LeadStatus;
+    status?: string;
+    statusMasterId?: string;
     isQualified?: boolean;
 }
 export declare class UpdateStatusDto {
-    status: LeadStatus;
+    status?: string;
+    statusMasterId?: string;
     notes?: string;
 }
 export declare class ReassignLeadDto {

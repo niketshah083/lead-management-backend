@@ -11,13 +11,13 @@ export declare class MessageService {
     private readonly logger;
     constructor(messageRepository: Repository<Message>, leadRepository: Repository<Lead>, whatsAppService: WhatsAppService, s3Service: S3Service);
     getConversation(leadId: string, pagination: PaginationDto): Promise<{
-        data: Message[];
+        data: any[];
         total: number;
         page: number;
         limit: number;
     }>;
     private isS3Key;
-    send(leadId: string, dto: SendMessageDto, senderId: string): Promise<Message>;
+    send(leadId: string, dto: SendMessageDto, senderId: string): Promise<any>;
     private sendWithRetry;
     private delay;
     storeIncomingMessage(leadId: string, content: string, mediaUrl?: string, mediaType?: string): Promise<Message>;
